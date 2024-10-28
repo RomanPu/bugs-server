@@ -1,0 +1,30 @@
+[
+  {
+    "_id": "u104",
+    "fullname": "Alice Johnson",
+    "username": "alice",
+    "password": "alice1234",
+    "score": 250
+  },
+  {
+    "_id": "u105",
+    "fullname": "Bob Brown",
+    "username": "bob",
+    "password": "bob1234",
+    "score": 300
+  },
+  {
+    "fullname": "tobi",
+    "username": "bobu",
+    "password": "aa234",
+    "score": 50,
+    "_id": "nHta5D"
+  },
+  {
+    "username": "halumi",
+    "password": "$2b$10$X1L2p56I9UUl1oc5RFyPfOmdS21fI3J30RYGIxirPy3pRXYHUe6i.",
+    "fullname": "choko Brown",
+    "_id": "qh10EL",
+    "score": 300
+  }
+]

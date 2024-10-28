@@ -1,0 +1,57 @@
+[
+  {
+    "_id": "abc123",
+    "title": "Cannot save a Car",
+    "description": "problem when clicking Save",
+    "severity": 3,
+    "createdAt": 1542107359454,
+    "creator": {
+      "_id": "Z7i6Yz",
+      "fullname": "ruti"
+    }
+  },
+  {
+    "_id": "def456",
+    "title": "Page not loading",
+    "description": "The homepage does not load",
+    "severity": 2,
+    "createdAt": 1542107359455,
+    "creator": {
+      "_id": "u106",
+      "fullname": "Alice Smith"
+    }
+  },
+  {
+    "_id": "ghi789",
+    "title": "Error 404 on profile page",
+    "description": "Profile page returns 404 error",
+    "severity": 4,
+    "createdAt": 1542107359456,
+    "creator": {
+      "_id": "u107",
+      "fullname": "Charlie Johnson"
+    }
+  },
+  {
+    "_id": "jkl012",
+    "title": "Button not clickable",
+    "description": "god its hard",
+    "severity": 8,
+    "createdAt": 1542107359457,
+    "creator": {
+      "_id": "Z7i6Yz",
+      "fullname": "Dana White"
+    }
+  },
+  {
+    "title": "bugi",
+    "description": "cvdfbfdhb",
+    "severity": 4,
+    "createdAt": 1730106006310,
+    "_id": "EQdYgR",
+    "creator": {
+      "_id": "Z7i6Yz",
+      "fullname": "Ram"
+    }
+  }
+]

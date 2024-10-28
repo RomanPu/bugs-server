@@ -1,0 +1,22 @@
+[
+  {
+    "username": "rumi",
+    "password": "$2b$10$/P09J2ZE1tzvfXFK.InwG.ZhSYGXjRnpVlflkS03tRM8VsXkcEhnG",
+    "fullname": "Ramon",
+    "_id": "Ir7DL1",
+    "isAdmin": true
+  },
+  {
+    "_id": "Iq001",
+    "fullname": "zar",
+    "username": "liam",
+    "password": "$2b$10$/P09J2ZE1tzvfXFK.InwG.ZhSYGXjRnpVlflkS03tRM8VsXkcEhnG",
+    "score": 67
+  },
+  {
+    "username": "ruti",
+    "password": "$2b$10$yCMxRqkiG4WfSKN86QHVDuV5i7FWsCDQfWeTz5aSqFJM0bT9GsWw2",
+    "fullname": "Ram",
+    "_id": "Z7i6Yz"
+  }
+]
