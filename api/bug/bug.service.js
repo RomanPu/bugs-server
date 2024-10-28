@@ -80,7 +80,7 @@ async function getById(id) {
 async function remove(id, user) {
     try {
         let bags = await query();
-        const bag = bags.find(bag => bag._id === id);
+        const bag = bags.filter(bag => bag._id !== id);
         console.log('User:', user)
         console.log('Bag:', bag)
        
