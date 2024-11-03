@@ -32,6 +32,7 @@ export async function getBugs (req, res){
 
     try {
         const bugs = await bagService.query(filterBy, user)
+        console.log('Bugs:', bugs)
         res.send(bugs)
     } catch (err) {
         res.status(500).send('Failed to read bugs data')

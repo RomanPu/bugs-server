@@ -19,6 +19,7 @@
     "crypter": "^0.2.2",
     "cryptr": "^6.3.0",
     "express": "^4.21.1",
+    "mongodb": "^6.10.0",
     "nodemon": "^3.1.7",
     "parser": "^0.1.4",
     "routes": "^2.1.0"

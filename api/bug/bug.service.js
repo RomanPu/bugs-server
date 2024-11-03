@@ -1,5 +1,8 @@
 import { utilService } from "../../services/util.service.js"
 import { loggerService } from "../../services/logger.service.js"
+import { dbService } from '../../services/db.service.js'
+import { asyncLocalStorage } from '../../services/als.service.js'
+
 
 export const bagService = {
     query,
@@ -10,61 +13,48 @@ export const bagService = {
 
 const PAGE_SIZE = 2
 
+function _buildCriteria(filterBy) {
+    //const { loggedinUser } = asyncLocalStorage.getStore()
+    console.log('filter:', filterBy)
+    const criteria = {
+        $or: [
+            { title: { $regex: filterBy.txt, $options: 'i' } },
+            { description: { $regex: filterBy.txt, $options: 'i' } }
+        ],
+        severity: { $gte: filterBy?.minSeverity ? +filterBy.minSeverity : 0 },
+       // creator: { _id: loggedinUser._id }
+    }
+console.log('criteria:', criteria)
+    return criteria
+}
+
+function _buildSort(filterBy) {
+    if(!filterBy.sortBy) return {}
+    console.log('sort:', { [filterBy.sortBy]: filterBy.sortDirection })
+    return { [filterBy.sortBy]: +filterBy.sortDirection }
+}
+
 async function query(filterBy, user) {
-    let fBy = {}
-console.log('filterBy:', filterBy)
 
-    if (filterBy) { 
-        const { txt, minSeverity, sortBy, sortDirection, pageIdx, onlyUser} = filterBy
-        fBy = {
-            txt: txt || '',
-            minSeverity: minSeverity ? +minSeverity : undefined,
-            sortBy: sortBy || '',
-            sortDirection: sortDirection || 1,
-            pageIdx: pageIdx ? +pageIdx : undefined,
-            onlyUser: onlyUser || false
-        }
-    }
-    else { 
-        return utilService.readJsonFile('./data/bugs.json');
-    }
+	try {
+        console.log('before collection')
+        const criteria = _buildCriteria(filterBy)
+        const sort = _buildSort(filterBy)
+		const collection = await dbService.getCollection('bugs')
 
-    const { txt, minSeverity, sortBy, sortDirection, pageIdx, onlyUser} = fBy
-    try {
-        let bugs = utilService.readJsonFile('./data/bugs.json');
-        
-        if (txt) {
-            const regExp = new RegExp(txt, 'i')
-            bugs = bugs.filter(bug =>  regExp.test(bug.title) || regExp.test(bug.description))
-        }
-        
-        if (minSeverity) {
-            bugs = bugs.filter(bug => bug.severity >= minSeverity)
-        }
+		var bugCursor = await collection.find(criteria, { sort })
 
-        // Apply sorting
-        if (sortBy) {
-            bugs.sort((a, b) => {
-                if (a[sortBy] < b[sortBy]) return -1 * sortDirection;
-                if (a[sortBy] > b[sortBy]) return 1 * sortDirection;
-                return 0;
-            });
-        }
+        console.log('after collection',  bugCursor.toArray())
+		if (filterBy.pageIdx !== undefined) {
+	        bugCursor.skip(filterBy.pageIdx * PAGE_SIZE).limit(PAGE_SIZE)
+		}
 
-        if (pageIdx !== 0) {
-            const startIdx = pageIdx * PAGE_SIZE;
-            bugs = bugs.slice(startIdx, startIdx + PAGE_SIZE);
-        }
-console.log(onlyUser)
-        if (onlyUser) { 
-            bugs = bugs.filter(bug => bug.creator._id === user._id)
-        }
-
-        return bugs;
-    } catch (err) {
-        loggerService.error('Failed to read bugs data', err);
-        throw err;
-    }
+		const bugs = bugCursor.toArray()
+		return bugs
+	} catch (err) {
+		logger.error('cannot find bugs', err)
+		throw err
+	}
 }
 
 async function getById(id) {
