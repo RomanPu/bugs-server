@@ -3,10 +3,9 @@ import { bagService } from './bug.service.js'
 export async function updateBug(req, res) {
     const { _id, title, description, severity, createdAt, creator } = req.body
     const bugToSave = { _id, title, description, severity: +severity, createdAt: +createdAt, creator: creator }
-    const user = req.loggedinUser
 
     try {
-        const savedBug = await bagService.save(bugToSave, user)
+        const savedBug = await bagService.update(bugToSave)
         res.send(savedBug)
     } catch (err) {
         res.status(400).send(err)
@@ -16,10 +15,10 @@ export async function updateBug(req, res) {
 export async function addBug(req, res) {
     const { title, description, severity, createdAt } = req.body
     const bugToSave = { title, description, severity: +severity, createdAt: +createdAt }
-    const user = req.loggedinUser
+    bugToSave.creator = req.loggedinUser
 
     try {
-        const savedBug = await bagService.save(bugToSave, user)
+        const savedBug = await bagService.add(bugToSave)
         res.send(savedBug)
     } catch (err) {
         res.status(400).send(err)
