@@ -2,6 +2,7 @@ import { utilService } from "../../services/util.service.js"
 import { loggerService } from "../../services/logger.service.js"
 import { dbService } from '../../services/db.service.js'
 import { asyncLocalStorage } from '../../services/als.service.js'
+import { ObjectId } from 'mongodb'
 
 
 export const bagService = {
@@ -14,43 +15,45 @@ export const bagService = {
 const PAGE_SIZE = 2
 
 function _buildCriteria(filterBy) {
-    //const { loggedinUser } = asyncLocalStorage.getStore()
+    const { loggedinUser } = asyncLocalStorage.getStore()
     console.log('filter:', filterBy)
     const criteria = {
         $or: [
             { title: { $regex: filterBy.txt, $options: 'i' } },
             { description: { $regex: filterBy.txt, $options: 'i' } }
         ],
-        severity: { $gte: filterBy?.minSeverity ? +filterBy.minSeverity : 0 },
-       // creator: { _id: loggedinUser._id }
+        severity: { $gte: filterBy?.minSeverity ? +filterBy.minSeverity : 0 }
     }
-console.log('criteria:', criteria)
+
+    if (filterBy.onlyUser) {
+        criteria['creator._id'] = loggedinUser._id
+    }
+    console.log('criteria:', criteria)
     return criteria
 }
 
 function _buildSort(filterBy) {
     if(!filterBy.sortBy) return {}
-    console.log('sort:', { [filterBy.sortBy]: filterBy.sortDirection })
     return { [filterBy.sortBy]: +filterBy.sortDirection }
 }
 
-async function query(filterBy, user) {
+async function query(filterBy) {
 
 	try {
-        console.log('before collection')
         const criteria = _buildCriteria(filterBy)
         const sort = _buildSort(filterBy)
 		const collection = await dbService.getCollection('bugs')
 
 		var bugCursor = await collection.find(criteria, { sort })
 
-        console.log('after collection',  bugCursor.toArray())
 		if (filterBy.pageIdx !== undefined) {
 	        bugCursor.skip(filterBy.pageIdx * PAGE_SIZE).limit(PAGE_SIZE)
 		}
 
-		const bugs = bugCursor.toArray()
-		return bugs
+        // const bug = await collection.findOne({ _id:"abc123" })
+        // console.log('Bug:', bug)
+
+		return bugCursor.toArray()
 	} catch (err) {
 		logger.error('cannot find bugs', err)
 		throw err

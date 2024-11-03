@@ -6,6 +6,7 @@ import cookieParser from 'cookie-parser'
 import { bugRoutes } from './api/bug/bug.routes.js'
 import { userRoutes } from './api/user/user.routes.js'
 import { authRoutes } from './api/auth/auth.routes.js'
+import { setupAsyncLocalStorage } from './middlewares/setupAls.middleware.js'
 
 
 const corsOptions = {
@@ -19,6 +20,8 @@ app.use(express.static('public'))
 app.use(cors(corsOptions))
 app.use(express.json())
 app.use(cookieParser())
+
+app.all('*', setupAsyncLocalStorage)
 
 app.use('/api/bug', bugRoutes)
 app.use('/api/user', userRoutes)
