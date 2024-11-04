@@ -4,7 +4,6 @@ import { ObjectId } from 'mongodb';
 
 export const msgService = {
     query,
-    getById,
     remove,
     update,
     add
@@ -12,23 +11,45 @@ export const msgService = {
 
 async function query(filterBy = {}) {
     try {
-        const criteria = _buildCriteria(filterBy);
-        const collection = await dbService.getCollection('msgs');
-        const msgs = await collection.find(criteria).toArray();
+		const criteria = _buildCriteria(filterBy)
+		const collection = await dbService.getCollection('msgs');
+        
+		var msgs = await collection.aggregate([
+            {
+                $match: criteria,
+            },
+            {
+                $lookup: {
+                    localField: 'byUserId',
+                    from: 'users', foreignField: '_id',
+                    as: 'byUser',
+                },
+            },
+            {
+                $unwind: '$byUser',
+            },
+            {
+                $lookup: {
+                    from: 'bugs', foreignField: '_id',
+                    localField: 'aboutBugId',
+                    as: 'aboutBug',
+                },
+            },
+            {
+                $unwind: '$aboutBug',
+            },
+            { 
+                $project: {
+                    '_id': true, 'txt': true, 
+                    'byUser._id': true, 'byUser.fullname': true,
+                    'aboutBug._id': true, 'aboutBug.title': true,
+                } 
+            }
+        ]).toArray()
+
         return msgs;
     } catch (err) {
         loggerService.error('Failed to query messages', err);
-        throw err;
-    }
-}
-
-async function getById(msgId) {
-    try {
-        const collection = await dbService.getCollection('msgs');
-        const msg = await collection.findOne({ _id: ObjectId.createFromHexString(msgId) });
-        return msg;
-    } catch (err) {
-        loggerService.error(`Failed to get message ${msgId}`, err);
         throw err;
     }
 }
@@ -47,7 +68,44 @@ async function remove(msgId) {
 async function add(msg) {
     try {
         const collection = await dbService.getCollection('msgs');
-        await collection.insertOne(msg);
+        const options = { upsert: true, returnDocument: 'after' };
+        const { insertedId } = await collection.insertOne(msg, options);
+
+        const criteria = { _id: insertedId};
+
+        var msg = await collection.aggregate([
+            {
+                $match: criteria,
+            },
+            // {
+            //     $lookup: {
+            //         localField: 'byUserId',
+            //         from: 'users', foreignField: '_id',
+            //         as: 'byUser',
+            //     },
+            // },
+            // {
+            //     $unwind: '$byUser',
+            // },
+            // {
+            //     $lookup: {
+            //         from: 'bugs', foreignField: '_id',
+            //         localField: 'aboutBugId',
+            //         as: 'aboutBug',
+            //     },
+            // },
+            // {
+            //     $unwind: '$aboutBug',
+            // },
+            // { 
+            //     $project: {
+            //         '_id': true, 'txt': true, 
+            //         'byUser._id': true, 'byUser.fullname': true,
+            //         'aboutBug._id': true, 'aboutBug.title': true,
+            //     } 
+            // }
+        ]).toArray()
+
         return msg;
     } catch (err) {
         loggerService.error('Failed to add message', err);

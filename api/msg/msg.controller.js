@@ -11,16 +11,6 @@ export async function getMsgs(req, res) {
     }
 }
 
-export async function getMsg(req, res) {
-    const { msgId } = req.params
-    try {
-        const msg = await msgService.getById(msgId)
-        res.send(msg)
-    } catch (err) {
-        res.status(500).send('Failed to get message')
-    }
-}
-
 export async function removeMsg(req, res) {
     const { msgId } = req.params
     try {
@@ -32,8 +22,10 @@ export async function removeMsg(req, res) {
 }
 
 export async function addMsg(req, res) {
-    const { txt, aboutBugId, byUserId } = req.body
-    const msgToSave = { txt, aboutBugId, byUserId }
+    const { txt, aboutBugId } = req.body
+    const msgToSave = { txt, aboutBugId }
+    msgToSave.byUserId = req.loggedinUser
+    console.log('msgToSave:', msgToSave)
 
     try {
         const savedMsg = await msgService.add(msgToSave)
