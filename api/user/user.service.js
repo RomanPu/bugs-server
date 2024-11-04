@@ -1,76 +1,46 @@
-import { utilService } from "../../services/util.service.js"
-import { loggerService } from "../../services/logger.service.js"
-import e from "express"
+import { loggerService } from "../../services/logger.service.js";
+import { dbService } from '../../services/db.service.js';
+import { ObjectId } from 'mongodb';
 
 export const userService = {
     query,
     getById,
     remove,
-    save,
-    getByUsername
-}
-
-const PAGE_SIZE = 2
+    update,
+    getByUsername,
+    add
+};
 
 async function getByUsername(username) {
-    const users = await query();
-    return users.find(user => user.username === username);
+    try {
+        const criteria = { username };
+        const collection = await dbService.getCollection('users');
+        const user = await collection.findOne(criteria);
+        return user;
+    } catch (err) {
+        loggerService.error('Failed to get user by username', err);
+        throw err;
+    }
 }
 
-async function query( filterBy ) {
-    let fBy = {}
-    if (filterBy) {
-        const { txt, sortBy, pageIdx, sortDirection, score } = filterBy
-
-        fBy = {
-            txt: txt || '',
-            score: score ? score : undefined,
-            sortBy: sortBy || '',
-            sortDirection: sortDirection || 1,
-            pageIdx: pageIdx ? +pageIdx : undefined
-        }
-    }
-    else {
-        return utilService.readJsonFile('./data/users.json');
-    }
-
+async function query(filterBy = {}) {
     try {
-        let users = utilService.readJsonFile('./data/users.json');
-        
-        if (txt) {
-            const regExp = new RegExp(txt, 'i')
-            users = users.filter(user =>  regExp.test(user.username) || regExp.test(user.fullname))
-        }
-
-        if (score) {
-            users = users.filter(user => user.score === score)
-        }
-
-        // Apply sorting
-        if (sortBy) {
-            users.sort((a, b) => {
-                if (a[sortBy] < b[sortBy]) return -1 * sortDirection;
-                if (a[sortBy] > b[sortBy]) return 1 * sortDirection;
-                return 0;
-            });
-        }
-
-        if (pageIdx !== undefined) {
-            const startIdx = pageIdx * PAGE_SIZE;
-            users = users.slice(startIdx, startIdx + PAGE_SIZE);
-        }
-
+        const criteria = _buildCriteria(filterBy);
+        const collection = await dbService.getCollection('users');
+        const users = await collection.find(criteria).toArray();
         return users;
     } catch (err) {
-        loggerService.error('Failed to read users data', err);
+        loggerService.error('Failed to query users', err);
         throw err;
     }
 }
 
 async function getById(id) {
     try {
-        const users = await query();
-        return users.find(user => user._id === id);
+        const criteria = { _id: ObjectId.createFromHexString(id) };
+        const collection = await dbService.getCollection('users');
+        const user = await collection.findOne(criteria);
+        return user;
     } catch (err) {
         loggerService.error('Failed to get user by id', err);
         throw err;
@@ -79,30 +49,49 @@ async function getById(id) {
 
 async function remove(id) {
     try {
-        let users = await query();
-        users = users.filter(user => user._id !== id);
-        await utilService.writeJsonFile('./data/users.json', users);
-        return users;
+        const criteria = { _id: ObjectId.createFromHexString(id) };
+        const collection = await dbService.getCollection('users');
+        const res = await collection.deleteOne(criteria);
+        if (res.deletedCount === 0) throw new Error('Failed to remove user');
+        return id;
     } catch (err) {
         loggerService.error('Failed to remove user', err);
         throw err;
     }
 }
 
-async function save(user) {
+async function add(user) {
     try {
-        const users = await query();
-        if (user._id) {
-            const idx = users.findIndex(existingUser => existingUser._id === user._id);
-            if (idx !== -1) users[idx] = user;
-        } else {
-            user._id = utilService.makeId();
-            users.push(user);
-        }
-        await utilService.writeJsonFile('./data/users.json', users);
+        const collection = await dbService.getCollection('users');
+        user.createdAt = Date.now();
+        await collection.insertOne(user);
         return user;
     } catch (err) {
-        loggerService.error('Failed to save user', err);
+        loggerService.error('Failed to add user', err);
         throw err;
     }
+}
+
+async function update(user) {
+    try {
+        const collection = await dbService.getCollection('users');
+        const criteria = { _id: ObjectId.createFromHexString(user._id) };
+        delete user._id;
+        await collection.updateOne(criteria, { $set: user });
+        return user;
+    } catch (err) {
+        loggerService.error('Failed to update user', err);
+        throw err;
+    }
+}
+
+function _buildCriteria(filterBy) {
+    const criteria = {};
+    if (filterBy.txt) {
+        criteria.$or = [
+            { username: { $regex: filterBy.txt, $options: 'i' } },
+            { fullname: { $regex: filterBy.txt, $options: 'i' } }
+        ];
+    }
+    return criteria;
 }

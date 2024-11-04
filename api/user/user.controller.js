@@ -6,7 +6,7 @@ export async function updateUser(req, res) {
 
 
     try {
-        const savedUser = await userService.save(userToSave)
+        const savedUser = await userService.update(userToSave)
         res.send(savedUser)
     } catch (err) {
         res.status(400).send(err)
@@ -18,7 +18,7 @@ export async function addUser(req, res) {
     const userToSave = { fullname, username, password, score: +score }
 
     try {
-        const savedUser = await userService.save(userToSave)
+        const savedUser = await userService.add(userToSave)
         res.send(savedUser)
     } catch (err) {
         res.status(400).send(err)

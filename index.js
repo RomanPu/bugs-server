@@ -3,6 +3,7 @@ import express from 'express'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
 
+import { msgRoutes } from './api/msg/msg.routes.js'
 import { bugRoutes } from './api/bug/bug.routes.js'
 import { userRoutes } from './api/user/user.routes.js'
 import { authRoutes } from './api/auth/auth.routes.js'
@@ -26,6 +27,7 @@ app.all('*', setupAsyncLocalStorage)
 app.use('/api/bug', bugRoutes)
 app.use('/api/user', userRoutes)
 app.use('/api/auth', authRoutes)
+app.use('/api/msg', msgRoutes)
 
 app.get('/**', (req, res) => {
     res.sendFile(path.resolve('public/index.html'))
